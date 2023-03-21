@@ -19,9 +19,10 @@ from torchvision.models import convnext_large, ConvNeXt_Large_Weights
 
 batch_size = 64
 epochs = 50
+log_file = "log_train.txt"
 
-if (os.path.exists("log.txt")):
-	os.remove("log.txt")
+if (os.path.exists(log_file)):
+	os.remove(log_file)
 
 class FashionDataset(Dataset):
     
@@ -216,7 +217,7 @@ def train(model, device, train_loader, optimizer, epoch):
         acc_sum += (correct_1 + correct_2 + correct_3 + correct_4 + correct_5 + correct_6)
         
         if(batch_idx+1)%30 == 0:
-            f = open("log.txt", "a+")
+            f = open(log_file, "a+")
             f.write('Train Epoch: {} [{}/{} ({:.0f}%)]\t category loss: {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:.2f}; Total_Loss: {:.6f}\n'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss_1.item(), loss_2.item(), loss_3.item(), loss_4.item(), loss_5.item(), loss_6.item(), loss.item()))
@@ -273,7 +274,7 @@ def test(model, device, test_loader, best_valid_loss, best_valid_acc, epoch):
     test_loss_5 /= len(test_loader.dataset)
     test_loss_6 /= len(test_loader.dataset)
     
-    f = open("log.txt", "a+")
+    f = open(log_file, "a+")
 
     if (test_loss_1 + test_loss_2 + test_loss_3 + test_loss_4 + test_loss_5 + test_loss_6) < best_valid_loss[0]:
         best_valid_loss[0] = (test_loss_1 + test_loss_2 + test_loss_3 + test_loss_4 + test_loss_5 + test_loss_6)
