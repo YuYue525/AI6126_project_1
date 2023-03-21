@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision.transforms import InterpolationMode
 from torch.autograd import Variable
+from torch.utils.data import ConcatDataset
 
 # pretrained models
 from torchvision.models import resnet50, ResNet50_Weights
@@ -103,9 +104,6 @@ class Network(nn.Module):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-import torch.nn.functional as F
-from torch.autograd import Variable
-
 class FocalLoss(nn.Module):
     def __init__(self, class_num, alpha=None, gamma=2, size_average=True):
         super(FocalLoss, self).__init__()
@@ -150,7 +148,7 @@ optimizer = optim.Adam(model.parameters(), lr = 1e-3)
 # scheduler
 # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50)
 # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 1, gamma = 0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 2, gamma = 0.7)
 
 criteria_1 = FocalLoss(7, size_average = False).to(device)
 criteria_2 = FocalLoss(3, size_average = False).to(device)
@@ -166,13 +164,8 @@ l_4 = FocalLoss(4).to(device)
 l_5 = FocalLoss(6).to(device)
 l_6 = FocalLoss(3).to(device)
 
-best_valid_loss = [float('inf')]
-best_valid_acc = [0]
-
 train_loss_history = []
-val_loss_history = []
 train_acc_history = []
-val_acc_history = []
 
 def train(model, device, train_loader, optimizer, epoch):
     model.train()
@@ -232,77 +225,6 @@ def train(model, device, train_loader, optimizer, epoch):
     train_acc_history.append( acc_sum / (6 * len(train_loader.dataset)) )
     train_loss_history.append(loss_sum * batch_size / len(train_loader.dataset))
     scheduler.step()
-
-def test(model, device, test_loader, best_valid_loss, best_valid_acc, epoch):
-    model.eval()
-    test_loss_1 = 0
-    test_loss_2 = 0
-    test_loss_3 = 0
-    test_loss_4 = 0
-    test_loss_5 = 0
-    test_loss_6 = 0
-    correct_1 = 0
-    correct_2 = 0
-    correct_3 = 0
-    correct_4 = 0
-    correct_5 = 0
-    correct_6 = 0
-    with torch.no_grad():
-        for data, target in test_loader:
-            data = data.to(device)
-            for i in range(len(target)):
-                target[i] = target[i].to(device)
-            output = model(data)
-            test_loss_1 += criteria_1(output[:, :7], target[0]).item()
-            test_loss_2 += criteria_2(output[:, 7:10], target[1]).item()
-            test_loss_3 += criteria_3(output[:, 10:13], target[2]).item()
-            test_loss_4 += criteria_4(output[:, 13:17], target[3]).item()
-            test_loss_5 += criteria_5(output[:, 17:23], target[4]).item()
-            test_loss_6 += criteria_6(output[:, 23:26], target[5]).item()
-            
-            correct_1 += output[:, :7].max(1, keepdim=True)[1].eq(target[0].view_as(output[:, :7].max(1, keepdim=True)[1])).sum().item()
-            correct_2 += output[:, 7:10].max(1, keepdim=True)[1].eq(target[1].view_as(output[:, 7:10].max(1, keepdim=True)[1])).sum().item()
-            correct_3 += output[:, 10:13].max(1, keepdim=True)[1].eq(target[2].view_as(output[:, 10:13].max(1, keepdim=True)[1])).sum().item()
-            correct_4 += output[:, 13:17].max(1, keepdim=True)[1].eq(target[3].view_as(output[:, 13:17].max(1, keepdim=True)[1])).sum().item()
-            correct_5 += output[:, 17:23].max(1, keepdim=True)[1].eq(target[4].view_as(output[:, 17:23].max(1, keepdim=True)[1])).sum().item()
-            correct_6 += output[:, 23:26].max(1, keepdim=True)[1].eq(target[5].view_as(output[:, 23:26].max(1, keepdim=True)[1])).sum().item()
-
-    test_loss_1 /= len(test_loader.dataset)
-    test_loss_2 /= len(test_loader.dataset)
-    test_loss_3 /= len(test_loader.dataset)
-    test_loss_4 /= len(test_loader.dataset)
-    test_loss_5 /= len(test_loader.dataset)
-    test_loss_6 /= len(test_loader.dataset)
-    
-    f = open(log_file, "a+")
-
-    if (test_loss_1 + test_loss_2 + test_loss_3 + test_loss_4 + test_loss_5 + test_loss_6) < best_valid_loss[0]:
-        best_valid_loss[0] = (test_loss_1 + test_loss_2 + test_loss_3 + test_loss_4 + test_loss_5 + test_loss_6)
-        f.write("best valid loss: {}\n".format(best_valid_loss[0]))
-        torch.save(model.state_dict(), 'model_best_loss.pt')
-
-    if (correct_1 + correct_2 + correct_3 + correct_4 + correct_5 + correct_6) * 100 / (6 * len(test_loader.dataset)) > best_valid_acc[0]:
-        best_valid_acc[0] = (correct_1 + correct_2 + correct_3 + correct_4 + correct_5 + correct_6) * 100 / (6 * len(test_loader.dataset))
-        torch.save(model.state_dict(), 'model_best_acc.pt')
-        f.write('best valid acc: {:.4f}\n'.format((correct_1 + correct_2 + correct_3 + correct_4 + correct_5 + correct_6) * 100 / (6 * len(test_loader.dataset))))
-
-    if (correct_1 + correct_2 + correct_3 + correct_4 + correct_5 + correct_6) * 100 / (6 * len(test_loader.dataset)) > 84.3:
-        torch.save(model.state_dict(), 'model_'+str(epoch)+'.pt')
-        f.write('accuracy over 84.3: {}\n'.format((correct_1 + correct_2 + correct_3 + correct_4 + correct_5 + correct_6) * 100 / (6 * len(test_loader.dataset))))
-
-    f.write('\nTest set: Average loss: {:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}; \n Accuracy: {}/{} ({:.0f}%), {}/{} ({:.0f}%), {}/{} ({:.0f}%), {}/{} ({:.0f}%), {}/{} ({:.0f}%), {}/{} ({:.0f}%)\n\n'.format(
-        test_loss_1, test_loss_2, test_loss_3, test_loss_4, test_loss_5, test_loss_6, 
-            correct_1, len(test_loader.dataset), 100. * correct_1 / len(test_loader.dataset),
-            correct_2, len(test_loader.dataset), 100. * correct_2 / len(test_loader.dataset),
-            correct_3, len(test_loader.dataset), 100. * correct_3 / len(test_loader.dataset),
-            correct_4, len(test_loader.dataset), 100. * correct_4 / len(test_loader.dataset),
-            correct_5, len(test_loader.dataset), 100. * correct_5 / len(test_loader.dataset),
-            correct_6, len(test_loader.dataset), 100. * correct_6 / len(test_loader.dataset),
-        ))
-    f.close()
-
-    val_loss_history.append((test_loss_1 + test_loss_2 + test_loss_3 + test_loss_4 + test_loss_5 + test_loss_6))
-    val_acc_history.append((correct_1 + correct_2 + correct_3 + correct_4 + correct_5 + correct_6) / (6 * len(test_loader.dataset)))
 
 for epoch in range(1, epochs + 1):
     train(model, device, train_loader, optimizer, epoch)
