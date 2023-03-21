@@ -23,6 +23,7 @@ CodaLab username: YuYue525
   python train.py
 3. test on the test set:
   python test.py
+  (remember to check the .pt file path)
   
 --- Links ---
 1. GitHub: https://github.com/YuYue525/AI6126_project_1
