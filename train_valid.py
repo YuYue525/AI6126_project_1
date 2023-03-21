@@ -57,8 +57,8 @@ class FashionDataset(Dataset):
         return len(self.img_paths)
 
 train_transform = transforms.Compose([
-    transforms.Resize([224, 224]),
-    # transforms.RandomResizedCrop(224,scale=(0.8,1.0)),
+    # transforms.Resize([224, 224]),
+    transforms.RandomResizedCrop(224,scale=(0.8,1.0)),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -77,10 +77,10 @@ val_img_path_file = "./FashionDataset/split/val.txt"
 val_label_file = "./FashionDataset/split/val_attr.txt"
 
 training_data = FashionDataset(img_dir, train_img_path_file, train_label_file, train_transform)
-val_data = FashionDataset(img_dir, val_img_path_file, val_label_file, train_transform)
+val_data = FashionDataset(img_dir, val_img_path_file, val_label_file, val_transform)
 
-dataset = ConcatDataset([training_data, val_data])
-train_loader = DataLoader(dataset, batch_size = batch_size, shuffle = True)
+train_loader = DataLoader(training_data, batch_size = batch_size, shuffle = True)
+val_loader = DataLoader(val_data, batch_size = batch_size, shuffle = True)
 
 # backbone = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
 # backbone = resnext101_64x4d(weights = ResNeXt101_64X4D_Weights.IMAGENET1K_V1)
@@ -101,9 +101,6 @@ class Network(nn.Module):
         return self.sequential(x)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-import torch.nn.functional as F
-from torch.autograd import Variable
 
 class FocalLoss(nn.Module):
     def __init__(self, class_num, alpha=None, gamma=2, size_average=True):
@@ -305,24 +302,28 @@ def test(model, device, test_loader, best_valid_loss, best_valid_acc, epoch):
 
 for epoch in range(1, epochs + 1):
     train(model, device, train_loader, optimizer, epoch)
-    if epoch % 2 == 0 and epoch >= 30:
-        torch.save(model.state_dict(), 'model_'+str(epoch)+'.pt')
+    test(model, device, val_loader, best_valid_loss, best_valid_acc, epoch)
+
+print("\nbest valid loss:", best_valid_loss[0])
+print("best valid acc:", best_valid_acc[0])
 
 import matplotlib.pyplot as plt
 plt.figure()
 plt.title("loss curves")
 plt.plot(range(1, epochs + 1), train_loss_history, label="train loss")
+plt.plot(range(1, epochs + 1), val_loss_history, label="valid loss")
 plt.xlabel("epochs")
 plt.ylabel("loss")
 plt.legend()
-plt.savefig("loss_train.png")
+plt.savefig("loss.png")
 
 plt.figure()
 plt.title("accuracy curves")
 plt.plot(range(1, epochs + 1), train_acc_history, label="train acc")
+plt.plot(range(1, epochs + 1), val_acc_history, label="valid acc")
 plt.xlabel("epochs")
 plt.ylabel("accuracy")
 plt.legend()
-plt.savefig("acc_train.png")
+plt.savefig("acc.png")
 
 torch.save(model.state_dict(), 'model_final.pt')
