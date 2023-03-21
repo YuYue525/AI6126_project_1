@@ -2,6 +2,8 @@ import os
 import numpy as np
 from PIL import Image
 
+from tqdm import tqdm
+
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -57,7 +59,7 @@ if (os.path.exists("prediction.txt")):
         os.remove("prediction.txt")
 
 batch_size = 1
-model_path = "model.pt"
+model_path = "model_36.pt"
 
 test_data = TestDataset(img_dir, test_img_path_file, test_transform)
 test_loader = DataLoader(test_data, batch_size = batch_size, shuffle = False)
@@ -87,9 +89,10 @@ model.load_state_dict(torch.load(model_path))
 
 def test(model, device, test_loader):
     model.eval()
+    print("start test ...")
     f = open("prediction.txt", "a+")
     with torch.no_grad():
-        for data in test_loader:
+        for data in tqdm(test_loader):
             data = data.to(device)
             output = model(data)
             f.write("{} {} {} {} {} {}\n".format(output[:, :7].max(1, keepdim=True)[1].item(),
@@ -99,5 +102,6 @@ def test(model, device, test_loader):
                                              output[:, 17:23].max(1, keepdim=True)[1].item(),
                                              output[:, 23:26].max(1, keepdim=True)[1].item()))
     f.close()
+    print("done!")
 
 test(model, device, test_loader)
