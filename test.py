@@ -19,6 +19,9 @@ from torchvision.models import resnet152, ResNet152_Weights
 from torchvision.models import resnext101_64x4d, ResNeXt101_64X4D_Weights
 from torchvision.models import convnext_large, ConvNeXt_Large_Weights
 
+batch_size = 1
+model_path = "model_32.pt"
+
 class TestDataset(Dataset):
     
     # img_dir = "./FashionDataset"
@@ -57,9 +60,6 @@ test_img_path_file = "./FashionDataset/split/test.txt"
 
 if (os.path.exists("prediction.txt")):
         os.remove("prediction.txt")
-
-batch_size = 1
-model_path = "model_36.pt"
 
 test_data = TestDataset(img_dir, test_img_path_file, test_transform)
 test_loader = DataLoader(test_data, batch_size = batch_size, shuffle = False)
