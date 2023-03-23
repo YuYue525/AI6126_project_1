@@ -20,7 +20,7 @@ from torchvision.models import resnext101_64x4d, ResNeXt101_64X4D_Weights
 from torchvision.models import convnext_large, ConvNeXt_Large_Weights
 
 batch_size = 1
-model_path = "model.pt"
+model_path = "model_best.pt"
 
 class TestDataset(Dataset):
     
