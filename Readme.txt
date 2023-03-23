@@ -27,4 +27,4 @@ CodaLab username: YuYue525
   
 --- Links ---
 1. GitHub: https://github.com/YuYue525/AI6126_project_1
-2. model download: https://entuedu-my.sharepoint.com/:u:/g/personal/yyu025_e_ntu_edu_sg/EaWGwF8gVNtGrgNTgasa5ncBGiQHBxT_VkTQLa4CtBQIHw
+2. model download: https://entuedu-my.sharepoint.com/:f:/g/personal/yyu025_e_ntu_edu_sg/EpFqdZ1BgNVHo5XbPNdkrOcBBRg5gojNPZcIIP6w5LPARg?e=o2yK92
