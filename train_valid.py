@@ -147,7 +147,7 @@ optimizer = optim.Adam(model.parameters(), lr = 1e-3)
 # scheduler
 # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50)
 # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 1, gamma = 0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 2, gamma = 0.8)
 
 criteria_1 = FocalLoss(7, size_average = False).to(device)
 criteria_2 = FocalLoss(3, size_average = False).to(device)
