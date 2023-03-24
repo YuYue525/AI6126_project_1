@@ -104,6 +104,9 @@ class Network(nn.Module):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+import torch.nn.functional as F
+from torch.autograd import Variable
+
 class FocalLoss(nn.Module):
     def __init__(self, class_num, alpha=None, gamma=2, size_average=True):
         super(FocalLoss, self).__init__()
@@ -142,7 +145,7 @@ class FocalLoss(nn.Module):
 model = Network(backbone).to(device)
 
 # optimizer
-# optimizer = optim.SGD(model.parameters(), lr = 1e-1, momentum = 0.9, weight_decay = 0)
+# optimizer = optim.SGD(model.parameters(), lr = 1e-2, momentum = 0.9, weight_decay = 0)
 optimizer = optim.Adam(model.parameters(), lr = 1e-3)
 
 # scheduler
@@ -228,7 +231,7 @@ def train(model, device, train_loader, optimizer, epoch):
 
 for epoch in range(1, epochs + 1):
     train(model, device, train_loader, optimizer, epoch)
-    if epoch % 2 == 0 and epoch >= 30:
+    if epoch % 2 == 1 and epoch >= 30:
         torch.save(model.state_dict(), 'model_'+str(epoch)+'.pt')
 
 import matplotlib.pyplot as plt
