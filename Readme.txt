@@ -10,7 +10,7 @@ CodaLab username: YuYue525
 5. train.py : the python script to train on the 5000 training set and 1000 validation set
 6. test.py : the python script to test on the 1000 test set and output prediction.txt
 7. CodaLab.png : Screenshot on CodaLab of the score achieved 
-8. model_best.pt : the model checkpoint of the submitted model
+8. model_best.txt : contains the link to the model checkpoint with the highest score
 
 --- Third-party libraries ---
 1. torch
